@@ -53,6 +53,17 @@ fits with the scope and aims of the project. It's up to *you* to make a strong
 case to convince the project's developers of the merits of this feature. Please
 provide as much detail and context as possible.
 
+## Writing Code in Ember Table
+
+Ember Table is written as an Ember CLI addon. This means that source files are
+in the `addon` and `app` folders, the demo application is in the `tests/dummy`
+folder, and tests are in the `tests` folder.
+
+Temporarily, we are supporting a globals-based build to be used with Ember apps
+that don't yet use Ember CLI. This build is created via code in the `packaging`
+folder, and the compiled files are in the `dist` folder. These files are
+checked into version control, but instead of modifying them directly, please
+generate them with `grunt dist`.
 
 ## Pull requests
 
@@ -98,29 +109,35 @@ included in the project:
    git checkout -b <topic-branch-name>
    ```
 
-4. Commit your changes in logical chunks. Please adhere to these [git commit
+4. Before committing changes, make sure to compile modified CoffeeScript files.
+
+   ```bash
+   grunt dist
+   ```
+
+5. Commit your changes in logical chunks. Please adhere to these [git commit
    message guidelines](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html)
    or your code is unlikely be merged into the main project. Use Git's
    [interactive rebase](https://help.github.com/articles/interactive-rebase)
    feature to tidy up your commits before making them public.
 
-5. Locally merge (or rebase) the upstream development branch into your topic branch:
+6. Locally merge (or rebase) the upstream development branch into your topic branch:
 
    ```bash
    git pull [--rebase] upstream master
    ```
 
-6. Push your topic branch up to your fork:
+7. Push your topic branch up to your fork:
 
    ```bash
    git push origin <topic-branch-name>
    ```
 
-7. [Open a Pull Request](https://help.github.com/articles/using-pull-requests/)
+8. [Open a Pull Request](https://help.github.com/articles/using-pull-requests/)
     with a clear title and description against the `master` branch.
 
 **IMPORTANT**: By submitting a patch, you agree to allow the project owners to
-license your work under the terms of the [BSD License](LICENSE).
+license your work under the terms of the [BSD License](LICENSE.md).
 
 
 ## Running tests
@@ -139,7 +156,8 @@ Coming soon!
 ## License
 
 By contributing your code, you agree to license your contribution under the
-[BSD license](LICENSE).
+[BSD license](LICENSE.md).
 
 
 #### NOTE: Largely copied from https://github.com/twbs/bootstrap/blob/master/CONTRIBUTING.md
+

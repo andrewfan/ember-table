@@ -1,4 +1,4 @@
-# Ember Table
+# Ember Table [![Build Status](https://secure.travis-ci.org/Addepar/ember-table.svg?branch=master)](http://travis-ci.org/Addepar/ember-table)
 
 A table built using [Ember.js](http://emberjs.com/) that lazily renders rows.
 
@@ -15,37 +15,89 @@ http://addepar.github.com/ember-table/
 
 #### JS Bin Starter Kit
 
-http://emberjs.jsbin.com/feqih/1/edit
+http://emberjs.jsbin.com/bihemir/edit
 
-#### Installation
+#### Installation with Ember CLI (Recommended)
 
-With bower: `bower install ember-table --save`
+```bash
+# ember-cli >= 0.2.0
+ember install:addon ember-table
 
-Or, just include `dist/ember-table.js` and `dist/ember-table.css` in your app.
+# ember-cli >= 0.2.3
+ember install ember-table
+```
 
 Once it's installed, you can customize the look of ember-table with CSS.
 
+#### Installation with Bower (Globals-Based Version)
+
+`bower install ember-table --save`
+
+Or, just include `dist/ember-table.js` and `dist/ember-table.css` in your app.
+
+Using Ember Table with bower is **deprecated** and will eventually be removed.
+We recommend that you migrate your apps to Ember CLI! Documentation has been
+updated to show Ember CLI usage. If you need documentation for globals-based
+use, please check out version 0.4.1 of Ember Table and follow the setup
+instructions under "Running Old Versions" to display the old guides.
+
 #### Developing or Testing
 
-After cloning this repo, install dependencies and compile with grunt:
+After cloning this repo, install dependencies and run the demo app:
+
+```bash
+$ npm install
+$ ember serve
+```
+
+You can view the examples at http://localhost:4200.
+
+You can run the tests at http://localhost:4200/tests. Tests are a work in
+progress - no need to run them right now.
+
+Before submitting a pull request, please compile the globals-based version of
+Ember Table (the `dist` folder):
+
+```bash
+$ npm install -g grunt-cli      # install grunt
+$ grunt dist
+```
+
+#### Running Old Versions (pre-0.4.3)
+
+If you are running an old version of Ember Table (pre-0.4.3), setup for
+development uses grunt and node rather than `ember serve`:
 
 ```bash
 $ npm install -g grunt-cli
 $ npm install
+$ bower install
 $ grunt
+$ node examples.js              # run the demo app
 ```
 
-To view examples, start the node server. From the root directory:
+You can then view the examples at http://localhost:8000/gh_pages.
 
-`$ node examples.js`.
+## Using with other Ember versions
 
-You can view the examples at http://localhost:8000/gh_pages.
+Support for Ember 1.9, 1.10, and 1.11 (1.11.1 required) is available via
+branches of that name (e.g. `ember-1.9`)
 
 ## Dependencies
 * ember
 * jquery-ui
 * jquery.mousewheel
 * antiscroll
+
+
+## Browser Support
+
+We aim to support the last two major versions of every common browser.
+
+If you need to support further browsers, we welcome pull requests with fixes.
+
+Touch support may work but has not been tested.
+
 
 ## Contributing
 
@@ -70,17 +122,26 @@ In a nutshell, this means:
 * Making backwards-compatible bug fixes increases the patch version
 
 
-### Maintainers
-Update version numbers and release using https://github.com/webpro/release-it. Install:
-```
-$ npm install -g release-it
-$ alias release="release-it"
-```
-Release process:
+## Maintainers
+Update version numbers and release using https://github.com/webpro/grunt-release-it:
+
 ```
 $ vim CHANGELOG.md
-$ release <options>
+$ grunt release-it:<options>
 ```
+
+By default, this will release a new patch version. Other suggested commands:
+
+```
+$ grunt release-it:minor
+$ grunt release-it:major
+$ grunt release-it:X.Y.Z
+```
+
+Ember Table uses the "distribution repository" feature of `release-it` to push to
+the `gh-pages` branch and update documentation. When prompted, do NOT update the
+tag for the distribution repository. We'll streamline the release process a bit
+more soon.
 
 
 ## Copyright and License
@@ -88,4 +149,4 @@ Copyright © 2013 Addepar, Inc. All Rights Reserved
 
 Licensed under the BSD License (the "License"); you may not use this work
 except in compliance with the License. You may obtain a copy of the License in
-the LICENSE file.
+the LICENSE.md file.

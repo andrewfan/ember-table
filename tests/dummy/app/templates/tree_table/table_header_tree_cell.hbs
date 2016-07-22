@@ -1,0 +1,10 @@
+<span class="ember-table-toggle-span {{if row.isLeaf '' 'ember-table-toggle'}} 
+    {{if row.isCollapsed 'ember-table-expand' 'ember-table-collapse'}}"
+    {{action 'toggleCollapse' row}}>
+  {{fa-icon "caret-down" classNames="ember-table-toggle-icon"}}
+</span>
+<div class="ember-table-content-container" {{action 'sortByColumn' column}}>
+  <span class="ember-table-content">
+    {{column.headerCellName}}
+  </span>
+</div>

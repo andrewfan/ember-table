@@ -4,7 +4,9 @@ import ResizeHandlerMixin from 'ember-table/mixins/resize-handler';
 import Row from 'ember-table/models/row';
 
 export default Ember.Component.extend(
-StyleBindingsMixin, ResizeHandlerMixin, {
+StyleBindingsMixin,
+ResizeHandlerMixin,
+{
   classNames: ['ember-table-tables-container'],
   classNameBindings: ['enableContentSelection:ember-table-content-selectable'],
 
@@ -163,9 +165,6 @@ StyleBindingsMixin, ResizeHandlerMixin, {
     if (!Ember.$().mousewheel) {
       throw 'Missing dependency: jquery-mousewheel';
     }
-    if (!Ember.$().antiscroll) {
-      throw 'Missing dependency: antiscroll.js';
-    }
     this.prepareTableColumns();
   },
 
@@ -253,27 +252,10 @@ StyleBindingsMixin, ResizeHandlerMixin, {
   // ---------------------------------------------------------------------------
   // View concerns
   // ---------------------------------------------------------------------------
-  didRender: function() {
-    Ember.run.scheduleOnce('afterRender', this, 'didRenderCalculations');
-  },
-
-  didRenderCalculations: function() {
+  didRenderCalculations: Ember.on('didInsertElement', function() {
     this.elementSizeDidChange();
     this.doForceFillColumns();
-  },
-
-  willDestroyElement: function() {
-    var antiscrollElements = this.$('.antiscroll-wrap');
-    var antiscroll;
-    antiscrollElements.each(function(i, antiscrollElement) {
-      antiscroll = Ember.$(antiscrollElement).data('antiscroll');
-      if (antiscroll) {
-        antiscroll.destroy();
-        Ember.$(antiscrollElement).removeData('antiscroll');
-      }
-    });
-    this._super();
-  },
+  }),
 
   onResizeEnd: function() {
     // We need to put this on the run loop, because resize event came from
@@ -287,15 +269,39 @@ StyleBindingsMixin, ResizeHandlerMixin, {
     Ember.run(this, this.elementSizeDidChange);
   },
 
+
+  //http://stackoverflow.com/questions/13382516/getting-scroll-bar-width-using-javascript
+  _scrollBarWidht: Ember.computed(function() {
+    var inner = document.createElement('p');
+    inner.style.width = "100%";
+    inner.style.height = "200px";
+    var outer = document.createElement('div');
+    outer.style.position = "absolute";
+    outer.style.top = "0px";
+    outer.style.left = "0px";
+    outer.style.visibility = "hidden";
+    outer.style.width = "200px";
+    outer.style.height = "150px";
+    outer.style.overflow = "hidden";
+    outer.appendChild (inner);
+    document.body.appendChild (outer);
+    var w1 = inner.offsetWidth;
+    outer.style.overflow = 'scroll';
+    var w2 = inner.offsetWidth;
+    if (w1 === w2) {
+      w2 = outer.clientWidth;
+    }
+    document.body.removeChild (outer);
+    return (w1 - w2);
+  }),
+
   elementSizeDidChange: function() {
     if ((this.get('_state') || this.get('state')) !== 'inDOM') {
       return;
     }
     this.set('_width', this.$().parent().width());
     this.set('_height', this.$().parent().height());
-    // we need to wait for the table to be fully rendered before antiscroll can
-    // be used
-    Ember.run.next(this, this.updateLayout);
+    this.updateLayout();
   },
 
   tableWidthNowTooSmall: function() {
@@ -313,8 +319,6 @@ StyleBindingsMixin, ResizeHandlerMixin, {
     if ((this.get('_state') || this.get('state')) !== 'inDOM') {
       return;
     }
-    // updating antiscroll
-    this.$('.antiscroll-wrap').antiscroll().data('antiscroll').rebuild();
     if (this.get('columnsFillTable')) {
       this.doForceFillColumns();
     }
@@ -355,22 +359,27 @@ StyleBindingsMixin, ResizeHandlerMixin, {
   // In that case, keep iterating until all column widths are set to the best
   // they can be. Note that this may fail to arrive at the table width if the
   // resizable columns are all restricted by min/max widths.
-  doForceFillColumns: function() {
-    var allColumns = this.get('columns');
-    var columnsToResize = allColumns.filterBy('canAutoResize');
-    var unresizableColumns = allColumns.filterBy('canAutoResize', false);
-    var availableWidth = this.get('_width') - this._getTotalWidth(unresizableColumns);
+  doForceFillColumns() {
+    const allColumns = this.get('columns');
+    const scrollbarWidth =  this.get('_scrollBarWidht');
 
-    var continueResizingColumns = true;
+    let columnsToResize = allColumns.filterBy('canAutoResize');
+    const unresizableColumns = allColumns.filterBy('canAutoResize', false);
+    let availableWidth = this.get('_width') - this._getTotalWidth(unresizableColumns);
+    if (availableWidth > scrollbarWidth) {
+      availableWidth = availableWidth - scrollbarWidth;
+    }
+
+    let continueResizingColumns = true;
     while (continueResizingColumns) {
-      var totalResizableWidth = this._getTotalWidth(columnsToResize);
-      var nextColumnsToResize = [];
+      const totalResizableWidth = this._getTotalWidth(columnsToResize);
+      const nextColumnsToResize = [];
       continueResizingColumns = false;
 
-      for (var i = 0; i < columnsToResize.get('length'); ++i) {
-        var column = columnsToResize[i];
-        var isColumnAtExtremum = this._resizeColumn(column, totalResizableWidth,
-          availableWidth);
+      for (let i = 0; i < columnsToResize.get('length'); ++i) {
+        const column = columnsToResize[i];
+        const isColumnAtExtremum = this._resizeColumn(column, totalResizableWidth,
+          availableWidth, i === (columnsToResize.get('length') - 1));
 
         if (isColumnAtExtremum) {
           continueResizingColumns = true;
@@ -379,7 +388,6 @@ StyleBindingsMixin, ResizeHandlerMixin, {
           nextColumnsToResize.pushObject(column);
         }
       }
-
       columnsToResize = nextColumnsToResize;
     }
   },
@@ -440,13 +448,14 @@ StyleBindingsMixin, ResizeHandlerMixin, {
     return Math.max(contentWidth, availableWidth);
   }).property('tableColumns.@each.width', '_width', '_fixedColumnsWidth'),
 
-  _rowWidth: Ember.computed(function() {
-    var columnsWidth = this.get('_tableColumnsWidth');
-    var nonFixedTableWidth = this.get('_tableContainerWidth') -
-        this.get('_fixedColumnsWidth');
-    return Math.max(columnsWidth, nonFixedTableWidth);
-  }).property('_fixedColumnsWidth', '_tableColumnsWidth',
-      '_tableContainerWidth'),
+  _rowWidth: Ember.computed('_fixedColumnsWidth', '_tableColumnsWidth', '_tableContainerWidth', function() {
+    const scrollbarWidth = this.get('_scrollBarWidht');
+    const columnsWidth = this.get('_tableColumnsWidth');
+    const nonFixedTableWidth = this.get('_tableContainerWidth') - this.get('_fixedColumnsWidth');
+    const rowWidth = Math.max(columnsWidth, nonFixedTableWidth);
+    const columnsWidthSum = this.get('columns').mapBy('width').reduce((i, s) => s + i, 0);
+    return Math.max(rowWidth - scrollbarWidth, columnsWidthSum);
+  }),
 
   // Dynamic header height that adjusts according to the header content height
   _headerHeight: Ember.computed(function() {
